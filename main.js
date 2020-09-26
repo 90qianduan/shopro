@@ -10,6 +10,11 @@ import {
 } from './env.js'
 
 
+// 引入全局uView
+import uView from 'uview-ui'
+Vue.use(uView)
+
+
 import shoproShare from '@/common/mixins/shopro-share'
 Vue.mixin(shoproShare);
 

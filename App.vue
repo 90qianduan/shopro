@@ -90,6 +90,7 @@ export default {
 @import 'static/colorui/icon.css';
 @import 'static/font/shopro-icon.css';
 
+@import 'uview-ui/index.scss';
 // 其他scss集成在uni.scss,(变量,class,minix)
 
 uni-radio:not([disabled]) .uni-radio-input:hover,
