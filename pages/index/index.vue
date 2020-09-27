@@ -277,7 +277,7 @@ export default {
 // 标题搜索栏
 .active {
 	// 动画时间跟随轮播组件动画时间
-	transition: all linear 0.5s;
+	transition: all linear 0.3s;
 }
 // 服务协议
 .modal-wrap {

@@ -7,12 +7,19 @@
 					<!-- 拼团滚动提示 -->
 					<sh-groupon-tip v-if="false"></sh-groupon-tip>
 					<!-- 详情轮播 -->
-					<swiper class="carousel" circular @change="swiperChange" :autoplay="true">
-						<swiper-item @tap="tools.previewImage(goodsInfo.images, swiperCurrent)" v-for="(img, index) in goodsInfo.images" :key="index" class="carousel-item">
-							<image class="swiper-image shopro-selector-rect" :src="img" mode="aspectFill" lazy-load></image>
-						</swiper-item>
-					</swiper>
-					<view v-if="goodsInfo.images" class="swiper-dots">{{ swiperCurrent + 1 }} / {{ goodsInfo.images.length }}</view>
+					<u-swiper
+						@change="swiperChange"
+						:borderRadius="0"
+						:height="750"
+						:list="goodsInfo.images"
+						:title="title"
+						:effect3d="effect3d"
+						:indicator-pos="indicatorPos"
+						:mode="mode"
+						:autoplay="true"
+						:interval="3000"
+						@click="onImage"
+					></u-swiper>
 				</view>
 
 				<!-- 价格卡片组 -->
@@ -234,7 +241,12 @@ export default {
 					id: 'tab2',
 					title: '用户评价'
 				}
-			]
+			],
+			// 轮播
+			title: false,
+			mode: 'number',
+			indicatorPos: 'bottomRight',
+			effect3d: false
 		};
 	},
 	computed: {},
@@ -276,10 +288,15 @@ export default {
 			this.$tools.routerTo('/pages/index/index');
 		},
 		// 轮播图切换
-		swiperChange(e) {
-			const index = e.detail.current;
-			this.swiperCurrent = index;
+		swiperChange(current) {
+			this.swiperCurrent = current;
 		},
+
+		// 查看图片
+		onImage(index) {
+			this.$tools.previewImage(this.goodsInfo.images, index);
+		},
+
 		// 选项卡
 		onTab(id) {
 			this.tabCurrent = id;
@@ -449,35 +466,6 @@ export default {
 	width: 750rpx;
 	height: 750rpx;
 	position: relative;
-
-	.carousel {
-		width: 750rpx;
-		height: 100%;
-	}
-
-	.carousel-item {
-		width: 750rpx;
-		height: 100%;
-	}
-
-	.swiper-image {
-		width: 750rpx;
-		height: 100%;
-		background: #ccc;
-	}
-
-	.swiper-dots {
-		display: flex;
-		position: absolute;
-		right: 20rpx;
-		bottom: 20rpx;
-		line-height: 44rpx;
-		border-radius: 22rpx;
-		padding: 0 15rpx;
-		background: rgba(#333, 0.3);
-		font-size: 28rpx;
-		color: rgba(#fff, 0.9);
-	}
 }
 // 规格卡片
 .sku-box {
