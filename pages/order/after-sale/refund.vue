@@ -1,58 +1,66 @@
 <template>
 	<view class="page_box">
-		<view class="head_box"></view>
 		<view class="content_box">
-			<view class="goods-box">
-				<shopro-mini-card :type="'order'" :detail="orderItemDetail"><block slot="goodsBottom"></block></shopro-mini-card>
-			</view>
-			<view class="refund-item">
-				<view class="item-title">请选择售后类型</view>
-				<view class="radio-box y-start">
-					<label class="radio-label x-f" v-for="item in refundTypeList" :key="item.title" @tap="selRefundType(item.value)">
-						<checkbox class="radio-check round orange" :checked="refundType == item.value" :class="{ checked: refundType == item.value }"></checkbox>
-						<text class="radio-title">{{ item.title }}</text>
-					</label>
+			<u-form :model="model" :rules="rules" ref="uForm" :errorType="errorType">
+				<view class="goods-box">
+					<shopro-mini-card :type="'order'" :detail="orderItemDetail"><block slot="goodsBottom"></block></shopro-mini-card>
 				</view>
-			</view>
-			<view class="goods-item x-bc" @tap="onSelCause">
-				<text class="item-title">选择申请原因</text>
-				<view class="x-f refund-cause">
-					<text style="margin-right: 20rpx;">{{ refundCause }}</text>
-					<text class="cuIcon-right"></text>
-				</view>
-			</view>
-			<!-- 联系方式 -->
-			<view class="refund-item mb20">
-				<view class="item-title">联系方式</view>
-				<view class="input-box x-f"><input type="number" class="item-input" v-model="phone" placeholder="请输入您的联系电话" placeholder-class="input--pl" /></view>
-			</view>
-			<!-- 留言 -->
-			<view class="refund-item" style="margin-bottom: 20rpx;" v-show="!showModal">
-				<view class="item-title">相关描述</view>
-				<view class="describe-box">
-					<textarea
-						class="describe-content"
-						v-model="refundContent"
-						maxlength="120"
-						placeholder="客官~请描述您遇到的问题，建议上传照片"
-						placeholder-class="input--pl"
-						fixed
-					></textarea>
-					<view class="upload-img">
-						<view class="img-box">
-							<view class="preview-box" v-for="(item, index) in imgList" :key="index">
-								<image class="preview-img" :src="imgList[index]" mode="aspectFill"></image>
-								<text class="cuIcon-close" @tap="DelImg(index)"></text>
+				<view class="refund-item">
+					<u-form-item required prop="type" :borderBottom="false" :label-position="'top'" :label="'请选择售后类型'" :labelStyle="labelStyle" label-width="150">
+						<u-radio-group v-model="model.type" :active-color="'#ECBE60'" :wrap="true">
+							<view class="x-f" :style="{ height: '80rpx', width: '100%' }" v-for="(item, index) in refundTypeList" :key="index">
+								<u-radio labelSize="28rpx" shape="circle" :name="item.value">{{ item.title }}</u-radio>
 							</view>
-							<view class="choose-img x-c" @tap="chooseImg" v-if="imgList.length < 10"><text class="cuIcon-cameraadd"></text></view>
-						</view>
+						</u-radio-group>
+					</u-form-item>
+				</view>
+				<view class="goods-item x-bc" @tap="onSelCause">
+					<text class="item-title">选择申请原因</text>
+					<view class="x-f refund-cause">
+						<text style="margin-right: 20rpx;">{{ refundCause }}</text>
+						<text class="cuIcon-right"></text>
 					</view>
 				</view>
-			</view>
+				<!-- 联系方式 -->
+				<view class="refund-item mb20">
+					<u-form-item required :borderBottom="false" :labelStyle="labelStyle" label-position="top" label="联系方式" prop="phone" label-width="150">
+						<view :style="{ width: '100%', background: 'rgba(249, 250, 251, 1)', 'border-radius': '20rpx', paddingLeft: '20rpx' }">
+							<u-input :placeholderStyle="placeholderStyle" placeholder="请输入您的联系电话" v-model="model.phone" type="number"></u-input>
+						</view>
+					</u-form-item>
+				</view>
+				<!-- 留言 -->
+				<view class="refund-item" style="margin-bottom: 20rpx;" v-show="!showModal">
+					<view class="item-title">相关描述</view>
+					<view class="describe-box">
+						<u-form-item required prop="content" :borderBottom="false">
+							<u-input type="textarea" :placeholderStyle="placeholderStyle" placeholder="客官~请描述您遇到的问题，建议上传照片" v-model="model.content" />
+						</u-form-item>
+						<u-form-item prop="images" label-width="150" :borderBottom="false">
+							<u-upload
+								:showProgress="false"
+								@on-uploaded="uploadSuccess"
+								@on-remove="uploadRemove"
+								:action="`${this.$API_URL}/index/upload`"
+								width="136"
+								height="136"
+								customBtn
+								maxCount="9"
+							>
+								<block slot="addBtn">
+									<view class="img-box">
+										<view class="choose-img x-c"><text class="cuIcon-cameraadd"></text></view>
+									</view>
+								</block>
+							</u-upload>
+						</u-form-item>
+					</view>
+				</view>
+			</u-form>
 		</view>
 		<view class="foot_box x-bc">
-			<button class="cu-btn contcat-btn" v-if="addons.includes('kefu')" @tap="onService">联系客服</button>
 			<button class="cu-btn sub-btn" @tap="postAftersale">提交</button>
+			<button class="cu-btn contcat-btn" v-if="addons.includes('kefu')" @tap="onService">联系客服</button>
 		</view>
 		<shopro-modal v-model="showModal" :modalType="'bottom-modal'">
 			<block slot="modalContent">
@@ -83,16 +91,12 @@ export default {
 	},
 	data() {
 		return {
-			addons:uni.getStorageSync('addons'),
+			addons: uni.getStorageSync('addons'),
 			showModal: false,
-			imgList: [], //本地地址
 			orderId: 0, //订单ID
 			orderItemDetail: {}, //订单信息
 			modalDetail: {},
-			refundType: '', //退款方式
 			refundCause: '', //退款原因
-			refundContent: '', //相关描述
-			phone: '', //联系方式
 			refundTypeList: [
 				{
 					title: '退款',
@@ -131,10 +135,62 @@ export default {
 						val: '质量问题'
 					}
 				]
+			},
+			// 表单
+			errorType: ['toast'],
+			labelStyle: {
+				'font-size': '30rpx',
+				'font-weight': 'bold',
+				color: 'rgba(51, 51, 51, 1)'
+			},
+			placeholderStyle: 'font-size: 26rpx;color: rgba(177, 179, 199, 1);',
+			model: {
+				type: '',
+				content: '',
+				images: [],
+				phone: ''
+			},
+			rules: {
+				type: [
+					{
+						required: true,
+						message: '请选择申请售后类型',
+						trigger: 'change'
+					}
+				],
+				content: [
+					{
+						required: true,
+						message: '请填写相关描述'
+					},
+					{
+						max: 120,
+						message: '描述最多120个字符',
+						trigger: 'change'
+					}
+				],
+				phone: [
+					{
+						required: true,
+						message: '请输入手机号',
+						trigger: ['change', 'blur']
+					},
+					{
+						validator: (rule, value, callback) => {
+							return this.$u.test.mobile(value);
+						},
+						message: '手机号码不正确',
+						// 触发器可以同时用blur和change，二者之间用英文逗号隔开
+						trigger: ['change', 'blur']
+					}
+				]
 			}
 		};
 	},
 	computed: {},
+	onReady() {
+		this.$refs.uForm.setRules(this.rules);
+	},
 	onLoad() {
 		this.getOrderItemDetail();
 	},
@@ -143,20 +199,20 @@ export default {
 		onService() {
 			this.$Router.push('/pages/public/kefu/index');
 		},
-		chooseImg() {
-			let that = this;
-			that.$tools.chooseImage(1).then(res => {
-				res.forEach(img => {
-					that.$tools.uploadImage('index/upload', img).then(res => {
-						that.imgList.push(res.full_url);
-					});
-				});
+		// 上传图片成功
+		uploadSuccess(lists, index) {
+			this.model.images = [];
+			lists.forEach(item => {
+				let imgPath = item.response.data.full_url;
+				this.model.images.push(imgPath);
 			});
 		},
-		// 选择售后类型
-		selRefundType(value) {
-			this.refundType = value;
+
+		// 移除图片
+		uploadRemove(index, lists) {
+			this.model.images.splice(index, 1);
 		},
+
 		// 选择售后原因
 		onRefundCause(value) {
 			this.refundCause = value;
@@ -177,34 +233,24 @@ export default {
 		postAftersale() {
 			let that = this;
 			uni.showLoading();
-			that.$api('order.aftersale', {
-				type: that.refundType,
-				order_id: that.$Route.query.orderId,
-				order_item_id: that.$Route.query.orderItemId,
-				reason: that.refundCause,
-				content: that.refundContent,
-				images: that.imgList,
-				phone: that.phone
-			}).then(res => {
-				if (res.code === 1) {
-					//  #ifdef MP-WEIXIN
-					this.$store.dispatch('getMessageIds', 'aftersale');
-					//  #endif
-					uni.hideLoading();
-					that.$Router.replace('/pages/order/after-sale/list');
-				}
-			});
-		},
-		DelImg(index) {
-			uni.showModal({
-				title: '删除照片',
-				content: '确定要删除这张照片么？',
-				cancelText: '取消',
-				confirmText: '删除',
-				success: res => {
-					if (res.confirm) {
-						this.imgList.splice(index, 1);
-					}
+			this.$refs.uForm.validate(valid => {
+				if (valid) {
+					that.$api('order.aftersale', {
+						order_id: that.$Route.query.orderId,
+						order_item_id: that.$Route.query.orderItemId,
+						reason: that.refundCause,
+						...that.model
+					}).then(res => {
+						if (res.code === 1) {
+							//  #ifdef MP-WEIXIN
+							this.$store.dispatch('getMessageIds', 'aftersale');
+							//  #endif
+							uni.hideLoading();
+							that.$Router.replace('/pages/order/after-sale/list');
+						}
+					});
+				} else {
+					console.log('验证失败');
 				}
 			});
 		},
@@ -234,53 +280,12 @@ export default {
 		color: rgba(51, 51, 51, 1);
 		margin-bottom: 20rpx;
 	}
-	.radio-label {
-		height: 80rpx;
-		.radio-check {
-			transform: scale(0.7);
-			margin-right: 10rpx;
-		}
-		.radio-title {
-			font-size: 28rpx;
-			font-family: PingFang SC;
-			font-weight: 500;
-			color: rgba(51, 51, 51, 1);
-		}
-	}
 	// 留言
 	.describe-box {
 		width: 690rpx;
+		padding: 20rpx;
 		background: rgba(249, 250, 251, 1);
 		border-radius: 20rpx;
-		.describe-content {
-			width: 690rpx;
-			padding: 30rpx;
-			height: 200rpx;
-			font-size: 24rpx;
-			font-family: PingFang SC;
-			font-weight: 400;
-			color: rgba(177, 179, 199, 1);
-		}
-	}
-	.input--pl {
-		font-size: 24rpx;
-		font-family: PingFang SC;
-		font-weight: 400;
-		color: rgba(177, 179, 199, 1);
-	}
-	// 联系方式
-	.input-box {
-		height: 84rpx;
-		background: rgba(249, 250, 251, 1);
-		border-radius: 20rpx;
-		.item-input {
-			padding: 0 30rpx;
-			flex: 1;
-			font-size: 28rpx;
-			font-family: PingFang SC;
-			font-weight: 400;
-			color: rgba(177, 179, 199, 1);
-		}
 	}
 }
 
@@ -324,53 +329,21 @@ export default {
 	}
 }
 
-.upload-img {
-	padding: 25rpx;
-
-	.upload-title {
-		font-size: 28rpx;
-	}
-}
-
 .img-box {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
 
-	.choose-img,
-	.preview-box {
-		width: 110rpx;
-		height: 110rpx;
+	.choose-img {
+		width: 130rpx;
+		height: 130rpx;
 		background: rgba(249, 250, 251, 1);
 		border: 1rpx solid rgba(223, 223, 223, 1);
-		margin-right: 20rpx;
-		margin-bottom: 20rpx;
 		position: relative;
-
-		&:nth-child(5n) {
-			margin-right: 0;
-		}
-
+		margin: 10rpx;
 		.cuIcon-cameraadd {
 			font-size: 50rpx;
 			color: #dfdfdf;
-		}
-
-		.preview-img {
-			width: 100%;
-			height: 100%;
-		}
-
-		.cuIcon-close {
-			background: linear-gradient(90deg, rgba(216, 159, 100, 1), rgba(235, 193, 150, 1));
-			border-radius: 50%;
-			width: 40rpx;
-			line-height: 40rpx;
-			color: #fff;
-			text-align: center;
-			position: absolute;
-			top: -10rpx;
-			right: -10rpx;
 		}
 	}
 }

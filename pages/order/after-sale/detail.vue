@@ -55,15 +55,7 @@
 				</view>
 				<view class="aftersale-item x-f">
 					<view class="item-title">售后类型：</view>
-					<view class="item-content">{{ aftersaleDetail.type_text }}</view>
-				</view>
-				<view class="aftersale-item x-f" v-if="aftersaleLog && aftersaleLog.length">
-					<view class="item-title">申请原因：</view>
-					<view class="item-content">{{ aftersaleLog[aftersaleLog.length - 1].reason }}</view>
-				</view>
-				<view class="aftersale-item x-f" v-if="aftersaleLog && aftersaleLog.length">
-					<view class="item-title">相关描述：</view>
-					<view class="item-content">{{ aftersaleLog[aftersaleLog.length - 1].content }}</view>
+					<view class="item-content">{{ aftersaleDetail.type }}</view>
 				</view>
 			</view>
 		</view>
@@ -124,7 +116,7 @@ export default {
 			}).then(res => {
 				if (res.code === 1) {
 					that.aftersaleDetail = res.data;
-					that.aftersaleLog = res.data.log;
+					that.aftersaleLog = res.data.logs;
 					let createdate = new Date(res.data.createtime * 1000);
 					let update = new Date(res.data.updatetime * 1000);
 					that.aftersaleDetail.createtime = that.$tools.dateFormat('YYYY-mm-dd HH:MM', createdate);

@@ -14,8 +14,7 @@
 					<view class="order-head x-bc">
 						<text class="no">服务单号：{{ order.aftersale_sn }}</text>
 						<view class="order-status x-f">
-							<!-- 	<text class="iconfont" :class="itemStatus[order.type].icon"></text> -->
-							<text class="status-text">{{ itemStatus[order.type].text }}</text>
+							<text class="status-text">{{ order.type_text || '' }}</text>
 						</view>
 					</view>
 
@@ -39,7 +38,7 @@
 					</view>
 				</view>
 				<!-- 缺省页 -->
-				<shopro-empty v-if="!orderList.length" :emptyData="emptyData"></shopro-empty>
+				<shopro-empty v-if="!orderList.length && loadStatus !=='loading'" :emptyData="emptyData"></shopro-empty>
 				<!-- 更多 -->
 				<view v-if="orderList.length" class="cu-load text-gray" :class="loadStatus"></view>
 			</scroll-view>
@@ -63,20 +62,6 @@ export default {
 				img: '/static/imgs/empty/empty_groupon.png',
 				tip: '暂无相关记录~'
 			},
-			itemStatus: {
-				//售后状态。
-				refund: {
-					text: '退款',
-					icon: 'icon-tuikuan'
-				},
-				return: {
-					text: '退货',
-					icon: 'icon-tuihuo'
-				},
-				other: {
-					text: '其他'
-				}
-			},
 			orderState: [
 				{
 					id: 0,
@@ -98,10 +83,11 @@ export default {
 	},
 	computed: {},
 	onLoad() {},
+	onPullDownRefresh() {
+		this.initList();
+	},
 	onShow() {
-		this.orderList = [];
-		this.currentPage = 1;
-		this.getAftersaleList();
+		this.initList();
 	},
 	methods: {
 		jump(path, parmas) {
@@ -110,6 +96,13 @@ export default {
 				query: parmas
 			});
 		},
+		// 初始化售后列表
+		initList() {
+			this.orderList = [];
+			this.currentPage = 1;
+			this.getAftersaleList();
+		},
+
 		// 切换导航
 		onNav(type) {
 			this.orderType = type;
@@ -124,6 +117,7 @@ export default {
 				type: that.orderType,
 				page: that.currentPage
 			}).then(res => {
+				uni.stopPullDownRefresh();
 				if (res.code === 1) {
 					that.orderList = [...that.orderList, ...res.data.data];
 					that.lastPage = res.data.last_page;

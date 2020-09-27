@@ -4,7 +4,7 @@
 			<u-form :model="model" :rules="rules" ref="uForm" :errorType="errorType">
 				<u-form-item required prop="type" :borderBottom="false" :label-position="'top'" :label="'请选择类型'" :labelStyle="labelStyle" label-width="150">
 					<u-radio-group v-model="model.type" :active-color="'#ECBE60'" :wrap="true">
-						<view :style="{ paddingBottom: '20rpx', width: '100%' }" v-for="(item, index) in typeList" :key="index">
+						<view class="x-f" :style="{ height: '80rpx', width: '100%' }" v-for="(item, index) in typeList" :key="index">
 							<u-radio labelSize="28rpx" shape="circle" :name="item.name">{{ item.name }}</u-radio>
 						</view>
 					</u-radio-group>
