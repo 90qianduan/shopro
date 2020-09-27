@@ -1,55 +1,60 @@
 <template>
-	<form>
-		<view class="page_box">
-			<view class="head_box"></view>
-			<view class="content_box pad">
-				<view class="form-item">
-					<view class="inp-title">
-						请选择类型
-						<text v-if="errTips.type" style="color: red; font-size: 24rpx;">({{ errTips.type }})</text>
-					</view>
-					<view class="err-msg"></view>
-					<radio-group class="y-start radio-box">
-						<label class="radio-item x-f" v-for="type in typeList" :key="type.code" @tap="changeType(type.code)">
-							<radio class="orange radio-inp" :class="{ chekced: type === type.code }" :checked="type === type.code"></radio>
-							<text class="radio-title">{{ type.name }}</text>
-						</label>
-					</radio-group>
-				</view>
+	<view class="page_box">
+		<view class="content_box pad">
+			<u-form :model="model" :rules="rules" ref="uForm" :errorType="errorType">
+				<u-form-item required prop="type" :borderBottom="false" :label-position="'top'" :label="'请选择类型'" :labelStyle="labelStyle" label-width="150">
+					<u-radio-group v-model="model.type" :active-color="'#ECBE60'" :wrap="true">
+						<view :style="{ paddingBottom: '20rpx', width: '100%' }" v-for="(item, index) in typeList" :key="index">
+							<u-radio labelSize="28rpx" shape="circle" :name="item.name">{{ item.name }}</u-radio>
+						</view>
+					</u-radio-group>
+				</u-form-item>
+
 				<view class="form-item">
 					<label>
 						<view class="inp-title">相关描述</view>
 						<view class="area-box">
-							<textarea
-								class="inp-area"
-								v-model="content"
-								name="message"
-								placeholder="客官~您对我们的服务还满意吗，请给予我们你的意见我 们将做的更好~"
-								placeholder-class="pl-style"
-							/>
-							<view class="img-box">
-								<view class="preview-box" v-for="(item, index) in imgList" :key="index">
-									<image class="preview-img" :src="item" mode="aspectFill"></image>
-									<text class="cuIcon-close" @tap="DelImg(index)"></text>
-								</view>
-								<view class="choose-img x-c" @tap="onChooseImg" v-if="imgList.length < 10"><text class="cuIcon-cameraadd"></text></view>
-							</view>
+							<u-form-item required prop="content" :borderBottom="false">
+								<u-input
+									type="textarea"
+									:placeholderStyle="placeholderStyle"
+									placeholder="客官~您对我们的服务还满意吗，请给予我们你的意见我 们将做的更好~"
+									v-model="model.content"
+								/>
+							</u-form-item>
+							<u-form-item prop="images" label-width="150" :borderBottom="false">
+								<u-upload
+									:showProgress="false"
+									@on-uploaded="uploadSuccess"
+									@on-remove="uploadRemove"
+									:action="`${this.$API_URL}/index/upload`"
+									width="136"
+									height="136"
+									customBtn
+									maxCount="9"
+								>
+									<block slot="addBtn">
+										<view class="img-box">
+											<view class="choose-img x-c"><text class="cuIcon-cameraadd"></text></view>
+										</view>
+									</block>
+								</u-upload>
+							</u-form-item>
 						</view>
 					</label>
 				</view>
-				<view class="form-item">
-					<label>
-						<view class="inp-title">联系方式</view>
-						<input class="inp" v-model="phone" name="phone" type="number" placeholder="请输入您的联系电话" placeholder-class="pl-style" />
-					</label>
-				</view>
-			</view>
-			<view class="foot_box x-bc pad">
-				<button class="cu-btn post-btn" @tap="addFeedback">提交</button>
-				<button class="cu-btn contact-btn" v-if="addons.includes('kefu')" @tap="onService">联系客服</button>
-			</view>
+				<u-form-item required :borderBottom="false" :labelStyle="labelStyle" label-position="top" label="联系方式" prop="phone" label-width="150">
+					<view :style="{ width: '100%', background: 'rgba(249, 250, 251, 1)', 'border-radius': '20rpx', paddingLeft: '20rpx' }">
+						<u-input :placeholderStyle="placeholderStyle" placeholder="请输入您的联系电话" v-model="model.phone" type="number"></u-input>
+					</view>
+				</u-form-item>
+			</u-form>
 		</view>
-	</form>
+		<view class="foot_box x-bc pad">
+			<button class="cu-btn post-btn" @tap="addFeedback">提交</button>
+			<button class="cu-btn contact-btn" v-if="addons.includes('kefu')" @tap="onService">联系客服</button>
+		</view>
+	</view>
 </template>
 
 <script>
@@ -57,16 +62,64 @@ export default {
 	components: {},
 	data() {
 		return {
-			addons:uni.getStorageSync('addons'),
-			imgList: [], //图片
-			type: '', //类型
-			content: '', //描述
-			phone: '', //电话
+			addons: uni.getStorageSync('addons'),
 			typeList: [],
-			errTips: {}
+
+			// 表单
+			errorType: ['toast'],
+			labelStyle: {
+				'font-size': '30rpx',
+				'font-weight': 'bold',
+				color: 'rgba(51, 51, 51, 1)'
+			},
+			placeholderStyle: 'font-size: 26rpx;color: rgba(177, 179, 199, 1);',
+			model: {
+				type: '',
+				content: '',
+				images: [],
+				phone: ''
+			},
+			rules: {
+				type: [
+					{
+						required: true,
+						message: '请选择任意种反馈类型',
+						trigger: 'change'
+					}
+				],
+				content: [
+					{
+						required: true,
+						message: '请填写相关描述'
+					},
+					{
+						max: 120,
+						message: '描述最多120个字符',
+						trigger: 'change'
+					}
+				],
+				phone: [
+					{
+						required: true,
+						message: '请输入手机号',
+						trigger: ['change', 'blur']
+					},
+					{
+						validator: (rule, value, callback) => {
+							return this.$u.test.mobile(value);
+						},
+						message: '手机号码不正确',
+						// 触发器可以同时用blur和change，二者之间用英文逗号隔开
+						trigger: ['change', 'blur']
+					}
+				]
+			}
 		};
 	},
 	computed: {},
+	onReady() {
+		this.$refs.uForm.setRules(this.rules);
+	},
 	onLoad() {
 		this.getFeedbackType();
 	},
@@ -75,6 +128,7 @@ export default {
 		onService() {
 			this.$Router.push('/pages/public/kefu/index');
 		},
+
 		// 获取意见分类
 		getFeedbackType() {
 			let that = this;
@@ -85,47 +139,35 @@ export default {
 			});
 		},
 
+		// 上传图片成功
+		uploadSuccess(lists, index) {
+			this.model.images = [];
+			lists.forEach(item => {
+				let imgPath = item.response.data.full_url;
+				this.model.images.push(imgPath);
+			});
+		},
+
+		// 移除图片
+		uploadRemove(index, lists) {
+			this.model.images.splice(index, 1);
+		},
+
+		// 提交反馈
 		addFeedback() {
 			let that = this;
-			let formData = {
-				type: that.type,
-				content: that.content,
-				images: that.imgList,
-				phone: that.phone
-			};
-			that.$api('feedback.add', formData).then(res => {
-				if (res.code === 1) {
-					that.$tools.toast('提交成功');
-					setTimeout(() => {
-						that.$Router.back();
-					}, 300);
-				}
-			});
-		},
-		changeType(e) {
-			this.type = e;
-		},
-		// 选择图片
-		onChooseImg() {
-			let that = this;
-			that.$tools.chooseImage(1).then(res => {
-				res.forEach(img => {
-					that.$tools.uploadImage('index/upload', img).then(res => {
-						that.imgList.push(res.full_url);
+			this.$refs.uForm.validate(valid => {
+				if (valid) {
+					that.$api('feedback.add', that.model).then(res => {
+						if (res.code === 1) {
+							that.$tools.toast('提交成功');
+							setTimeout(() => {
+								that.$Router.back();
+							}, 300);
+						}
 					});
-				});
-			});
-		},
-		DelImg(index) {
-			uni.showModal({
-				title: '删除照片',
-				content: '确定要删除这张照片么？',
-				cancelText: '取消',
-				confirmText: '删除',
-				success: res => {
-					if (res.confirm) {
-						this.imgList.splice(index, 1);
-					}
+				} else {
+					console.log('验证失败');
 				}
 			});
 		}
@@ -147,33 +189,6 @@ export default {
 		align-items: center;
 		margin-bottom: 30rpx;
 	}
-	.inp {
-		width: 690rpx;
-		height: 84rpx;
-		background: rgba(249, 250, 251, 1);
-		border-radius: 20rpx;
-		padding: 0 30rpx;
-		font-size: 26rpx;
-		font-family: PingFang SC;
-		font-weight: 500;
-		color: #333;
-		margin-bottom: 38rpx;
-	}
-	.inp-house {
-		font-size: 26rpx;
-		font-family: PingFang SC;
-		font-weight: 500;
-		color: rgba(177, 179, 199, 1);
-	}
-	.area-inp {
-		height: 190upx;
-		padding: 30rpx;
-	}
-	.pl-style {
-		font-size: 26rpx;
-		font-family: PingFang SC;
-		color: rgba(177, 179, 199, 1);
-	}
 }
 .area-box {
 	width: 690rpx;
@@ -181,56 +196,23 @@ export default {
 	background: rgba(249, 250, 251, 1);
 	border-radius: 20rpx;
 	padding: 28rpx;
-	.pl-style {
-		font-size: 26rpx;
-		font-family: PingFang SC;
-		font-weight: 500;
-		color: rgba(177, 179, 199, 1);
-		line-height: 50rpx;
-	}
-	.inp-area {
-		font-size: 26rpx;
-		font-family: PingFang SC;
-		font-weight: 500;
-		color: #333;
-		line-height: 50rpx;
-		width: 100%;
-	}
+
 	.img-box {
 		display: flex;
 		align-items: center;
 		flex-wrap: wrap;
 		margin-top: 20rpx;
-		.choose-img,
-		.preview-box {
-			width: 108rpx;
-			height: 108rpx;
+		.choose-img {
+			width: 130rpx;
+			height: 130rpx;
 			background: rgba(249, 250, 251, 1);
 			border: 1rpx solid rgba(223, 223, 223, 1);
 			margin-right: 25rpx;
 			margin-bottom: 25rpx;
 			position: relative;
-			&:nth-child(5n) {
-				margin-right: 0;
-			}
 			.cuIcon-cameraadd {
 				font-size: 50rpx;
 				color: #dfdfdf;
-			}
-			.preview-img {
-				width: 100%;
-				height: 100%;
-			}
-			.cuIcon-close {
-				background: linear-gradient(90deg, rgba(216, 159, 100, 1), rgba(235, 193, 150, 1));
-				border-radius: 50%;
-				width: 40rpx;
-				line-height: 40rpx;
-				color: #fff;
-				text-align: center;
-				position: absolute;
-				top: -10rpx;
-				right: -10rpx;
 			}
 		}
 	}
@@ -260,26 +242,5 @@ export default {
 		font-weight: 500;
 		color: rgba(255, 255, 255, 1);
 	}
-}
-
-.radio-box {
-	margin-top: 30rpx;
-	.radio-item {
-		margin-bottom: 40rpx;
-		.radio-inp {
-			transform: scale(0.7);
-			margin-right: 10rpx;
-		}
-		.radio-title {
-			font-size: 28rpx;
-			font-family: PingFang SC;
-			font-weight: 400;
-			color: rgba(51, 51, 51, 1);
-		}
-	}
-}
-.uni-radio-input-checked {
-	background-color: #f37b1d !important;
-	border: #f37b1d !important;
 }
 </style>
