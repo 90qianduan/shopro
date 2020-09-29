@@ -1,24 +1,18 @@
 <template>
 	<view class="bank-wrap">
 		<view class="form-box">
-			<label>
-				<view class="form-item flex align-center justify-between">
-					<view class="item-title">持卡人:</view>
-					<input class="item-input flex-sub" type="text" v-model="bankInfo.real_name" placeholder="请输入持卡人姓名" placeholder-class="pl-input" />
-				</view>
-			</label>
-			<label>
-				<view class="form-item flex align-center justify-between">
-					<view class="item-title">银行卡号:</view>
-					<input class="item-input flex-sub" type="number" v-model="bankInfo.card_no" placeholder="请输入银行卡号" placeholder-class="pl-input" />
-				</view>
-			</label>
-			<label>
-				<view class="form-item flex align-center justify-between">
-					<view class="item-title">开户行:</view>
-					<input class="item-input flex-sub" type="text" v-model="bankInfo.bank_name" placeholder="请输入开户行" placeholder-class="pl-input" />
-				</view>
-			</label>
+			<u-form :model="model" :rules="rules" ref="uForm" :errorType="errorType">
+				<u-form-item required :labelStyle="labelStyle" label-width="150" label-position="left" label="持卡人" prop="real_name">
+					<u-input placeholder="请输入持卡人姓名" v-model="model.real_name" type="text"></u-input>
+				</u-form-item>
+
+				<u-form-item required :labelStyle="labelStyle" label-width="150" label-position="left" label="银行卡号" prop="card_no">
+					<u-input placeholder="请输入银行卡号" v-model="model.card_no" type="number"></u-input>
+				</u-form-item>
+				<u-form-item required :labelStyle="labelStyle" label-width="150" label-position="left" label="开户行" prop="bank_name">
+					<u-input placeholder="请输入开户行" v-model="model.bank_name" type="text"></u-input>
+				</u-form-item>
+			</u-form>
 		</view>
 
 		<view class="notice flex align-center">请填写持卡人本人的银行卡信息</view>
@@ -31,17 +25,53 @@ export default {
 	components: {},
 	data() {
 		return {
-			bankInfo: {
+			// 表单
+			model: {
 				real_name: '',
 				card_no: '',
 				bank_name: ''
+			},
+			// 表单
+			errorType: ['message'],
+			labelStyle: {
+				'font-size': '30rpx',
+				'font-weight': 'bold',
+				color: 'rgba(51, 51, 51, 1)'
+			},
+			placeholderStyle: 'font-size: 26rpx;color: rgba(177, 179, 199, 1);',
+			rules: {
+				real_name: [
+					{
+						required: true,
+						message: '请输入持卡人姓名',
+						trigger: ['change', 'blur']
+					}
+				],
+				card_no: [
+					{
+						required: true,
+						message: '请输入银行卡号',
+						trigger: ['change', 'blur']
+					}
+				],
+				bank_name: [
+					{
+						required: true,
+						message: '请输入开户行',
+						trigger: ['change', 'blur']
+					}
+				]
 			}
 		};
 	},
 	computed: {},
+	onReady() {
+		this.$refs.uForm.setRules(this.rules);
+	},
 	onLoad() {
 		this.getBankInfo();
 	},
+
 	methods: {
 		//获取银行卡信息
 		getBankInfo() {
@@ -49,7 +79,7 @@ export default {
 			that.$api('user_bank.info').then(res => {
 				if (res.code === 1) {
 					if (res.data) {
-						that.bankInfo = res.data;
+						that.model = res.data;
 					}
 				}
 			});
@@ -57,19 +87,21 @@ export default {
 		//修改银行卡信息
 		editBankInfo() {
 			let that = this;
-			that.$api('user_bank.edit', {
-				real_name: that.bankInfo.real_name,
-				bank_name: that.bankInfo.bank_name,
-				card_no: that.bankInfo.card_no
-			}).then(res => {
-				if (res.code === 1) {
-					that.$tools.toast('保存成功');
-					setTimeout(() => {
-						that.$Router.back();
-						// #ifdef H5
-						window.history.back(-1);
-						// #endif
-					}, 1000);
+			this.$refs.uForm.validate(valid => {
+				if (valid) {
+					that.$api('user_bank.edit', that.model).then(res => {
+						if (res.code === 1) {
+							that.$tools.toast('保存成功');
+							setTimeout(() => {
+								that.$Router.back();
+								// #ifdef H5
+								window.history.back(-1);
+								// #endif
+							}, 1000);
+						}
+					});
+				} else {
+					console.log('验证失败');
 				}
 			});
 		}
@@ -80,6 +112,7 @@ export default {
 <style lang="scss">
 .form-box {
 	background: #fff;
+	padding: 30rpx;
 	.form-item {
 		height: 96rpx;
 		border-bottom: 1rpx solid rgba(#dfdfdf, 0.9);

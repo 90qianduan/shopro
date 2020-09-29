@@ -1,5 +1,5 @@
 <template>
-	<view class="shopro-tabbar-wrap" v-if="tabbarList &&　tabbarList.length">
+	<view class="shopro-tabbar-wrap" v-if="tabbarList && tabbarList.length">
 		<view class="tabbar-box" :style="{ background: tabbarData.bgcolor || '#fff' }">
 			<view class="tabbar-item" v-for="(tab, index) in tabbarList" :key="tab.name" @tap="switchTabbar(tab, index)">
 				<view class="img-box">
@@ -90,23 +90,21 @@ export default {
 
 <style lang="scss">
 .shopro-tabbar-wrap {
-	height: calc(100rpx + env(safe-area-inset-bottom) / 2);
-	padding-bottom: calc(env(safe-area-inset-bottom) / 2);
 	position: relative;
 	width: 100%;
 	z-index: 70;
-	background-color: #fff;
-
+	height: calc(100rpx + env(safe-area-inset-bottom) / 2);
 	.tabbar-box {
+		height: calc(100rpx + env(safe-area-inset-bottom) / 2);
+		padding-bottom: calc(env(safe-area-inset-bottom) / 2);
 		position: fixed;
 		display: flex;
 		align-items: center;
 		width: 100%;
-		height: 100rpx;
 		border-top: 1rpx solid #eeeeee;
 		z-index: 998;
 		bottom: calc(env(safe-area-inset-bottom) / 2);
-
+		background-color: #fff;
 		.tabbar-item {
 			height: 100%;
 			display: flex;
