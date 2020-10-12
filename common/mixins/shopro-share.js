@@ -1,6 +1,6 @@
 /**
- * Wechat v1.0.0
- * @description shopro-wechat 1.0.1 wehcat全局分享组件
+ * Wechat v1.0.2
+ * @description shopro-wechat 1.0.2 wehcat全局分享组件
  * @Author llidongtony
  * @Date 2020-05-18
  * @Email lidongtony@qq.com
@@ -89,16 +89,15 @@ export default {
 			query: {} //自定义分享参数
 		}) {
 			let that = this;
+
 			uni.getStorage({
 				key: 'shareInfo',
 				success(e) {
 					var defaultShareInfo = e.data;
-					var domain = uni.getStorageSync('sysInfo')['domain'];
 					var platform = uni.getStorageSync('platform');
+					var domain = uni.getStorageSync('sysInfo')['domain'];
 					if (domain === '' || defaultShareInfo.title === '' || defaultShareInfo.image === '') {
-						uni.showToast({
-							title: '请设置商城域名和分享信息'
-						})
+						throw '请在商城配置中设置商城域名或分享信息'
 					}
 					//设置自定义分享标题
 					if (scene.title != '') {
@@ -121,14 +120,14 @@ export default {
 					that.shareInfo.path = ''
 					let urlQuery = that.setPathQuery(scene.query);
 					// #ifdef MP-WEIXIN
-					that.shareInfo.path = '/pages/index/index' + urlQuery;
+					that.shareInfo.path = 'pages/index/index' + urlQuery;
 					that.shareInfo.copyLink = domain + urlQuery;
 					// #endif
 					// #ifndef MP-WEIXIN
 					that.shareInfo.path = domain + urlQuery;
 					that.shareInfo.copyLink = domain + urlQuery;
 					// #endif
-					//微信网页 使用jssdk分享 此处针对没有交互就进行分享转发的微信公众号用户
+					//微信网页 使用jssdk分享 此处针对没有交互就进行任意页面分享转发的微信公众号用户，需针对每个页面url路径都进行注册
 					// #ifdef H5
 					if (platform === 'wxOfficialAccount') {
 						wxsdk.share(that.shareInfo);
@@ -137,6 +136,7 @@ export default {
 
 				}
 			})
+			console.log(that.shareInfo, 'shareInfo')
 		},
 		// 全局自定义url字符串拼接的方法
 		setPathQuery(query) {
@@ -155,7 +155,7 @@ export default {
 				if (url.indexOf('?') !== -1) {
 					url = `${url}&${queryArr.join('&')}`
 				} else {
-					url = `${url}/?${queryArr.join('&')}`
+					url = `${url}?${queryArr.join('&')}`
 				}
 			}
 			return url;
@@ -176,6 +176,26 @@ export default {
 	// #ifdef MP-WEIXIN
 
 	onShareAppMessage(res) {
+		let that = this;
+		return {
+			title: that.shareInfo.title,
+			path: that.shareInfo.path,
+			imageUrl: that.shareInfo.imageUrl,
+			success(res) {
+				uni.showToast({
+					title: '分享成功'
+				})
+			},
+			fail(res) {
+				uni.showToast({
+					title: '分享失败',
+					icon: 'none'
+				})
+			},
+			complete() {}
+		}
+	},
+	onShareTimeline(res) {
 		let that = this;
 		return {
 			title: that.shareInfo.title,

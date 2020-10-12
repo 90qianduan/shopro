@@ -1,22 +1,22 @@
 <template>
-	<view class="shopro-tabbar-wrap" v-if="tabbarList && tabbarList.length">
+	<view class="shopro-tabbar-wrap" v-if="tabbarList && tabbarList.length && showTabbar">
 		<view class="tabbar-box" :style="{ background: tabbarData.bgcolor || '#fff' }">
 			<view class="tabbar-item" v-for="(tab, index) in tabbarList" :key="tab.name" @tap="switchTabbar(tab, index)">
 				<view class="img-box">
 					<image
 						class="tabbar-icon"
 						v-if="tabbarData.style == 1 || tabbarData.style == 2"
-						:src="currentPath == getPath(tab.path) ? tab.activeImage : tab.image"
+						:src="currentPath == tab.path ? tab.activeImage : tab.image"
 						mode="aspectFill"
 					></image>
 					<!-- 购物车角标 -->
-					<view v-if="getPath(tab.path) == '/pages/index/cart' && cartNum" class="cu-tag badge">{{ cartNum }}</view>
+					<view v-if="tab.path == '/pages/index/cart' && cartNum" class="cu-tag badge">{{ cartNum }}</view>
 				</view>
 
 				<view
 					class="tabbar-text"
 					v-if="tabbarData.style == 1 || tabbarData.style == 3"
-					:style="{ color: currentPath == getPath(tab.path) ? tabbarData.activeColor : tabbarData.color }"
+					:style="{ color: currentPath == tab.path ? tabbarData.activeColor : tabbarData.color }"
 				>
 					{{ tab.name }}
 				</view>
@@ -33,7 +33,9 @@ export default {
 	data() {
 		return {};
 	},
-	props: {},
+	props: {
+		queryObj: {}
+	},
 	computed: {
 		...mapState({
 			templateData: state => state.init.templateData.tabbar,
@@ -51,21 +53,28 @@ export default {
 		},
 		currentPath() {
 			let pages = getCurrentPages();
+			let query = this.queryObj ? this.queryObj : {};
 			let currPage = null;
 			if (pages.length) {
 				currPage = pages[pages.length - 1].route;
+			}
+			if (Object.keys(query).length) {
+				let params = '';
+				for (let key in query) {
+					params += '?' + key + '=' + query[key] + '&';
+				}
+				params = params.substring(0, params.length - 1);
+				return '/' + currPage + params;
 			}
 			return '/' + currPage;
 		},
 		showTabbar() {
 			if (this.tabbarData && this.tabbarData.list) {
-				//等同于this?.tabbarData?.list
 				let arr = [];
 				let path = '';
 				arr.push('/pages/index/index');
 				for (let item of this.tabbarData.list) {
-					path = this.getPath(item.path);
-					arr.push(path);
+					arr.push(item.path);
 				}
 				return arr.includes(this.currentPath);
 			}
@@ -76,13 +85,6 @@ export default {
 		// 切换tabbar
 		switchTabbar(tab, index) {
 			this.$tools.routerTo(tab.path, {}, true);
-		},
-		getPath(path) {
-			if (path.indexOf('?') !== -1) {
-				let index = path.lastIndexOf('?');
-				path = path.slice(0, index);
-			}
-			return path;
 		}
 	}
 };
@@ -90,21 +92,24 @@ export default {
 
 <style lang="scss">
 .shopro-tabbar-wrap {
+	height: calc(100rpx + env(safe-area-inset-bottom) / 2);
+	padding-bottom: calc(env(safe-area-inset-bottom) / 2);
 	position: relative;
 	width: 100%;
 	z-index: 70;
-	height: calc(100rpx + env(safe-area-inset-bottom) / 2);
+
 	.tabbar-box {
-		height: calc(100rpx + env(safe-area-inset-bottom) / 2);
-		padding-bottom: calc(env(safe-area-inset-bottom) / 2);
 		position: fixed;
 		display: flex;
 		align-items: center;
 		width: 100%;
+		height: calc(100rpx + env(safe-area-inset-bottom) / 2);
 		border-top: 1rpx solid #eeeeee;
-		z-index: 998;
-		bottom: calc(env(safe-area-inset-bottom) / 2);
 		background-color: #fff;
+		z-index: 998;
+		bottom: 0;
+		padding-bottom: calc(env(safe-area-inset-bottom) / 2);
+
 		.tabbar-item {
 			height: 100%;
 			display: flex;
@@ -112,8 +117,10 @@ export default {
 			align-items: center;
 			justify-content: center;
 			flex: 1;
+
 			.img-box {
 				position: relative;
+
 				.cu-tag {
 					right: -12px;
 				}

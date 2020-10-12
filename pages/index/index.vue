@@ -1,7 +1,7 @@
 <template>
 	<view class="page_box">
 		<!-- 空白页 -->
-		<shopro-empty v-if="!template" :emptyData="emptyData"></shopro-empty>
+		<shopro-empty v-if="!hasTemplate" :emptyData="emptyData"></shopro-empty>
 		<view v-else class="page_box shopro-selector">
 			<!-- 导航栏 -->
 			<view class="head_box active" :style="{ background: bgcolor }">
@@ -164,6 +164,7 @@ export default {
 		...mapState({
 			initData: state => state.init.initData,
 			template: state => state.init.templateData?.home,
+			hasTemplate:state => state.init.hasTemplate,
 			cartNum: state => state.cart.cartNum,
 			forceOauth: state => state.user.forceOauth
 		}),
@@ -277,7 +278,7 @@ export default {
 // 标题搜索栏
 .active {
 	// 动画时间跟随轮播组件动画时间
-	transition: all linear 0.3s;
+	transition: all linear 0.5s;
 }
 // 服务协议
 .modal-wrap {

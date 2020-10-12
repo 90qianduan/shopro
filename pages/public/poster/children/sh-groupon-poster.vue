@@ -68,16 +68,21 @@ export default {
 		that.goodsInfo = that.$Route.query;
 		that.goodsInfo.image = decodeURIComponent(that.$Route.query.image);
 		that.goodsInfo.title = decodeURIComponent(that.$Route.query.title);
-		await that.setShareInfo({
+		that.setShareInfo({
 			query: {
 				url: 'groupon-' + that.$Route.query.id
 			},
 			title: that.goodsInfo.title,
 			image: that.goodsInfo.image
 		});
-
-		that.scene = await encodeURIComponent(that.shareInfo.path.split('?')[1]);
-		await that.shareFc();
+		if (that.shareInfo) {
+			setTimeout(function() {
+				that.$emit('getShareInfo', that.shareInfo);
+				console.log(that.shareInfo.path);
+				that.scene = encodeURIComponent(that.shareInfo.path.split('?')[1]);
+				that.shareFc();
+			}, 100);
+		}
 	},
 	methods: {
 		async shareFc() {
@@ -86,7 +91,7 @@ export default {
 				const d = await getSharePoster({
 					_this: this, //若在组件中使用 必传
 					type: 'grouponPoster',
-					backgroundImage: that.shareData.groupon_poster_bg, //接口返回的背景图
+					backgroundImage: that.$tools.checkImgHttp(that.shareData.groupon_poster_bg), //接口返回的背景图
 					formData: {
 						//访问接口获取背景图携带自定义数据
 					},
@@ -116,7 +121,7 @@ export default {
 								// },
 								{
 									type: 'image', //头像
-									url: that.userInfo.avatar,
+									url: that.$tools.checkImgHttp(that.userInfo.avatar),
 									alpha: 1,
 									dx: bgObj.width * 0.06,
 									dy: bgObj.width * 0.06,
@@ -176,7 +181,7 @@ export default {
 								},
 								{
 									type: 'image', //商品图片
-									url: that.goodsInfo.image,
+									url: that.$tools.checkImgHttp(that.goodsInfo.image),
 									alpha: 1,
 									drawDelayTime: 800, //draw延时时间
 									dx: bgObj.width * 0.054,

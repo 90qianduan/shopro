@@ -79,7 +79,7 @@ export default {
 		getCoupon() {
 			let that = this;
 			that.$api('coupons.get', {
-				id: that.$Route.query.couponId
+				id: that.$Route.query.id
 			}).then(res => {
 				if (res.code === 1) {
 					that.$tools.toast(res.msg);
@@ -92,12 +92,14 @@ export default {
 		getCouponDetail() {
 			let that = this;
 			that.$api('coupons.detail', {
-				id: that.$Route.query.couponId,
+				id: that.$Route.query.id,
 				user_coupons_id: that.options.userCouponId
 			}).then(res => {
 				if (res.code === 1) {
 					that.couponDetail = res.data;
-					this.btnStataus = res.data.status_code;
+					if (res.data.status_code) {
+						this.btnStataus = res.data.status_code;
+					}
 				}
 			});
 		},
@@ -105,7 +107,7 @@ export default {
 		getCouponGoods() {
 			let that = this;
 			that.$api('coupons.goods', {
-				id: that.$Route.query.couponId
+				id: that.$Route.query.id
 			}).then(res => {
 				if (res.code === 1) {
 					that.couponGoods = res.data.data;

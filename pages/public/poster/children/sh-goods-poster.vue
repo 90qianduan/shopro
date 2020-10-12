@@ -64,15 +64,24 @@ export default {
 	},
 	async created() {
 		let that = this;
-		await that.setShareInfo({
-			query: {
-				url: 'goods-' + that.$Route.query.id
-			},
-			title: that.goodsInfo.title,
-			image: that.goodsInfo.image
+		let goodsInfo = that.getGoodsDetail().then(res => {
+			that.setShareInfo({
+				title: that.goodsInfo.title,
+				image: that.goodsInfo.image,
+				query: {
+					url: 'goods-' + that.$Route.query.id
+				},
+			
+			});
+			if (that.shareInfo) {
+				setTimeout(function() {
+					that.$emit('getShareInfo', that.shareInfo);
+					console.log(that.shareInfo.path);
+					that.scene = encodeURIComponent(that.shareInfo.path.split('?')[1]);
+					that.shareFc();
+				}, 100);
+			}
 		});
-		that.scene = await encodeURIComponent(that.shareInfo.path.split('?')[1]);
-		await that.getGoodsDetail();
 	},
 	methods: {
 		// 商品详情
@@ -81,15 +90,18 @@ export default {
 			uni.showLoading({
 				title: '加载数据中'
 			});
+			return new Promise((resolve, reject) => {
 			that.$api('goods.detail', {
 				id: that.$Route.query.id
 			}).then(res => {
 				if (res.code === 1) {
 					uni.hideLoading();
 					that.goodsInfo = res.data;
-					that.shareFc();
+					resolve(that.goodsInfo);
+					
 				}
 			});
+			})
 		},
 		async shareFc() {
 			let that = this;
@@ -98,7 +110,7 @@ export default {
 				const d = await getSharePoster({
 					_this: this, //若在组件中使用 必传
 					// type: 'goodsPoster',
-					backgroundImage: that.shareData.goods_poster_bg, //接口返回的背景图
+					backgroundImage: that.$tools.checkImgHttp(that.shareData.goods_poster_bg), //接口返回的背景图
 					formData: {
 						//访问接口获取背景图携带自定义数据
 					},
@@ -128,7 +140,7 @@ export default {
 								// },
 								{
 									type: 'image', //头像
-									url: that.userInfo.avatar,
+									url:that.$tools.checkImgHttp (that.userInfo.avatar),
 									alpha: 1,
 									dx: bgObj.width * 0.06,
 									dy: bgObj.width * 0.06,
@@ -188,7 +200,7 @@ export default {
 								},
 								{
 									type: 'image', //商品图片
-									url: that.goodsInfo.image,
+									url:that.$tools.checkImgHttp( that.goodsInfo.image),
 									alpha: 1,
 									drawDelayTime: 800, //draw延时时间
 									dx: bgObj.width * 0.052,

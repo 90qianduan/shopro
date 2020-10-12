@@ -94,7 +94,7 @@ export default {
 
 		onType(index) {
 			this.listId = index;
-			this.listParams.category_id = this.categoryData[index];
+			this.listParams.category_id = this.categoryData[index].id;
 			this.goodsList = [];
 			this.listParams.page = 1;
 			!this.isLoading && this.getGoodsList();
@@ -210,7 +210,7 @@ export default {
 					width: 245rpx;
 					height: 246rpx;
 					border-radius: 10rpx 10rpx 0px 0px;
-					background: #ccc;
+					// background: #ccc;
 				}
 
 				.item-title {

@@ -7,7 +7,6 @@ export default {
 	 * 跳转再封装，不支持复杂传参。
 	 */
 	routerTo(path, params = {}, isLogin) {
-		if (!path) return false
 		let objParams = params;
 		// 是否跳转外部链接
 		if (~path.indexOf('http')) {
@@ -63,16 +62,15 @@ export default {
 
 	checkImgHttp(imgPath) {
 		let newPath = '';
-		if (imgPath.indexOf('data:image/svg+xml') !== -1) {
-			newPath = '/static/imgs/base_avatar.png'
-		} else {
-			let pathArr = imgPath.split('://');
-			// #ifdef H5
-			let ishttps = 'https:' == window.location.protocol ? true : false;
-			ishttps ? (pathArr[0] = 'https') : (pathArr[0] = 'http');
-			// #endif
-			newPath = pathArr.join('://');
-		}
+		let pathArr = imgPath.split('://');
+		// #ifdef H5
+		let ishttps = 'https:' == window.location.protocol ? true : false;
+		ishttps ? (pathArr[0] = 'https') : (pathArr[0] = 'http');
+		// #endif
+		// #ifdef MP-WEIXIN
+		pathArr[0] = 'https'
+		// #endif
+		newPath = pathArr.join('://');
 		return newPath;
 	},
 	// 打电话

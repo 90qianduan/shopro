@@ -4,7 +4,7 @@
 			<view class="scroll-box" style="background-color: #F6F6F6;">
 				<scroll-view
 					:style="takeoutTotalCount.totalNum ? 'padding-bottom:250rpx' : 'padding-bottom:170rpx'"
-					class="left left-scroll-box"
+					class="left left-scroll-box flex-sub"
 					:scroll-top="scrollLeftTop"
 					enable-back-to-top
 					scroll-y
@@ -24,11 +24,11 @@
 				</scroll-view>
 			</view>
 
-			<view style="height: 100vh;width: 100%;">
+			<view style="width: 100%;">
 				<scroll-view
 					:style="takeoutTotalCount.totalNum ? 'padding-bottom:250rpx' : 'padding-bottom:170rpx'"
 					scroll-y
-					class="scroll-box righ-scroll-box"
+					class="scroll-box righ-scroll-box flex-sub"
 					:scroll-top="scrollRightTop"
 					scroll-with-animation
 					@scroll="rightScroll"
@@ -60,10 +60,11 @@
 												<text class="cuIcon-roundaddfill" v-if="!isCart(mlist.id)" @tap="addCart(mlist.sku_price[0])"></text>
 												<view class="num-step" v-else>
 													<uni-number-box
-														@change="onChangeNum($event, mlist.sku_price[0])"
+														@change="onChangeNum($event, mlist.sku_price[0], index1)"
 														:value="checkCart[mlist.id].num"
 														:step="1"
-														:min="1"
+														:min="0"
+														:disabled="numberDisabled"
 													></uni-number-box>
 												</view>
 											</button>
@@ -78,11 +79,11 @@
 			</view>
 		</view>
 		<!-- 购物车 -->
-		<view class="cart-box x-f" v-show="takeoutTotalCount.totalNum">
+		<view class="cart-box x-f" v-show="takeoutTotalCount.totalNum" :style="isTabbar ? 'bottom:100rpx' : 'bottom:0'">
 			<view class="cart-left flex-sub x-f">
 				<view class="cart-img-box" @tap="onShowCartList">
 					<image class="cart-img" src="/static/imgs/cart2.png" mode=""></image>
-					<view class="cu-tag badge" v-if="totalCount.totalNum">{{ totalCount.totalNum || takeoutTotalCount.totalNum }}</view>
+					<view class="cu-tag badge" v-if="totalCount.totalNum">{{ takeoutTotalCount.totalNum }}</view>
 				</view>
 				<view class="price-box x-f">
 					<text class="price">{{ totalCount.totalPrice.toFixed(2) }}</text>
@@ -113,7 +114,13 @@
 									<view class="x-bc price-box">
 										<view class="price">￥{{ g.sku_price.price }}</view>
 										<view class="num-step">
-											<uni-number-box @change="onChangeNum($event, g, index)" v-model="g.goods_num" :step="1" :min="0"></uni-number-box>
+											<uni-number-box
+												@change="onChangeNum($event, g, index)"
+												:disabled="numberDisabled"
+												v-model="g.goods_num"
+												:step="1"
+												:min="0"
+											></uni-number-box>
 										</view>
 									</view>
 								</block>
@@ -124,7 +131,7 @@
 			</view>
 		</view>
 		<!-- 规格 -->
-		<sh-takeout-sku v-if="goodsInfo.id" v-model="showSku" :goodsInfo="goodsInfo" :buyType="'cart'"></sh-takeout-sku>
+		<sh-takeout-sku v-if="goodsInfo.id && showSku" v-model="showSku" :goodsInfo="goodsInfo" :buyType="'cart'"></sh-takeout-sku>
 		<!-- 遮罩 -->
 		<view class="mask" @tap="hideCartList" v-if="takeoutTotalCount.totalNum && showCartList"></view>
 	</view>
@@ -152,7 +159,8 @@ export default {
 			categoryData: {}, //商品分类数据
 			showSku: true, //是否显示规格弹窗
 			goodsInfo: {}, //点击商品详情
-			showCartList: false
+			showCartList: false,
+			numberDisabled: false //购物车计数器
 		};
 	},
 	props: {
@@ -165,9 +173,10 @@ export default {
 		...mapState({
 			cartNum: state => state.cart.cartNum,
 			cartList: state => state.cart.cartList,
-			allSel: ({ cart }) => cart.allSelected
+			allSel: ({ cart }) => cart.allSelected,
+			tabbarList: state => state.init.templateData.tabbar[0].content.list
 		}),
-		...mapGetters(['totalCount', 'takeoutTotalCount', 'isSel', 'totalCount']),
+		...mapGetters(['totalCount', 'takeoutTotalCount', 'isSel']),
 		// 购物车检测
 		checkCart() {
 			let obj = {};
@@ -178,6 +187,18 @@ export default {
 				};
 			});
 			return obj;
+		},
+		// 是否是底部导航页面
+		isTabbar() {
+			if (this.tabbarList.length) {
+				let arr = [];
+				let pages = getCurrentPages();
+				let currentPath = pages[pages.length - 1].$page.fullPath;
+				for (let item of this.tabbarList) {
+					arr.push(item.path);
+				}
+				return arr.includes(currentPath);
+			}
 		}
 	},
 	mounted() {
@@ -205,7 +226,10 @@ export default {
 		// 单选
 		onSel(index, flag) {
 			let that = this;
-			that.$store.commit('selectItem', { index, flag });
+			that.$store.commit('selectItem', {
+				index,
+				flag
+			});
 		},
 		// 清空购物车
 		deleteAll() {
@@ -217,7 +241,13 @@ export default {
 					selectedIdsArray.push(item.id);
 				}
 			});
-			this.changeCartList({ ids: selectedIdsArray, art: 'delete' });
+			if (selectedIdsArray.length == cartList.length) {
+				this.showCartList = false;
+			}
+			this.changeCartList({
+				ids: selectedIdsArray,
+				art: 'delete'
+			});
 		},
 		// 加入购物车
 		addCart(goods) {
@@ -237,11 +267,33 @@ export default {
 				}
 			});
 		},
+		// 检测商品在购物车中的下标
+		checkGoodsIndex(id){
+			let cIndex=0;
+			this.cartList.forEach((item,index)=>{
+				if(id ==item.goods_id ){
+					cIndex = index
+				}
+			})
+			return cIndex
+		},
 		// 更改商品数
-		onChangeNum(e, goods) {
+		async onChangeNum(e, goods, index) {
+			let gIndex = this.checkGoodsIndex(goods.goods_id)
 			if (e != this.checkCart[goods.goods_id].num) {
-				this.changeCartList({ ids: [this.checkCart[goods.goods_id].cartOrderId], goodsNum: e, art: 'change' });
-				this.getCartList();
+				this.numberDisabled = true;
+				uni.showLoading({
+					mask: true
+				});
+				this.$set(this.cartList[gIndex], 'goods_num', +e);
+				await this.changeCartList({
+					ids: [this.checkCart[goods.goods_id].cartOrderId],
+					goodsNum: +e,
+					art: 'change'
+				}).then(() => {
+					this.numberDisabled = false;
+				});
+				await uni.hideLoading();
 			}
 		},
 		// 检测是否为购物车商品
@@ -265,13 +317,17 @@ export default {
 						});
 					}
 				});
-				that.jump('/pages/order/confirm', { goodsList: JSON.stringify(confirmcartList), from: 'cart' });
+				that.jump('/pages/order/confirm', {
+					goodsList: JSON.stringify(confirmcartList),
+					from: 'cart'
+				});
 			}
 		},
 		// 添加购物车
-		selSku(info) {
-			this.showSku = true;
+		async selSku(info) {
+			this.goodsInfo = {};
 			this.getGoodsDetail(info.id);
+			this.showSku = true;
 		},
 		// 商品详情
 		getGoodsDetail(id) {
@@ -373,7 +429,7 @@ export default {
 		// 获取一个目标元素的高度
 		getElRect(elClass, dataVal) {
 			new Promise((resolve, reject) => {
-				const query = uni.createSelectorQuery().in(this); //这个in(this),小程序自定义组件，一定要带。。。。。。。。。。
+				const query = uni.createSelectorQuery().in(this); //这个in(this),小程序自定义组件，一定要带
 				query
 					.select('.' + elClass)
 					.fields(
@@ -407,11 +463,13 @@ export default {
 	width: 100%;
 	height: 100%;
 }
+
 .hide-cart-list {
 	transform: scaleY(0);
 	transform-origin: center bottom;
 	transition: all linear 0.1s;
 }
+
 .cart-list-box {
 	position: absolute;
 	width: 750rpx;
@@ -422,31 +480,38 @@ export default {
 	transform-origin: center bottom;
 	transition: all linear 0.1s;
 	border-radius: 20rpx 20rpx 0 0;
+
 	.cart-list__head {
 		height: 90rpx;
 		border-bottom: 1rpx solid rgba(#dfdfdf, 0.5);
+
 		.check-all {
 			font-size: 28rpx;
+
 			.check-all-radio {
 				transform: scale(0.7);
 				color: #e9b564;
 			}
 		}
+
 		.delete-box {
 			font-size: 26rpx;
 			font-weight: 500;
 			color: rgba(153, 153, 153, 1);
+
 			.cuIcon-delete {
 				font-size: 30rpx;
 				margin-right: 10rpx;
 			}
 		}
 	}
+
 	// 购物车列表
 	.block {
 		flex: 1;
 		overflow-y: auto;
 	}
+
 	.collect-list {
 		padding: 0 20rpx;
 		background: #fff;
@@ -496,6 +561,7 @@ export default {
 		}
 	}
 }
+
 // 购物车
 .cart-box {
 	position: absolute;
@@ -503,10 +569,12 @@ export default {
 	z-index: 77;
 	height: 80rpx;
 	width: 750rpx;
+
 	.cart-left {
 		background: linear-gradient(rgba(103, 104, 105, 1), rgba(82, 82, 82, 1));
 		height: 80rpx;
 		position: relative;
+
 		.cart-img-box {
 			position: absolute;
 			left: 50rpx;
@@ -514,13 +582,16 @@ export default {
 			height: 96rpx;
 			top: -20rpx;
 			z-index: 88;
+
 			.cart-img {
 				width: 96rpx;
 				height: 96rpx;
 			}
 		}
+
 		.price-box {
 			padding-left: 180rpx;
+
 			.original-price {
 				font-size: 22rpx;
 				font-family: OPPOSans;
@@ -529,11 +600,13 @@ export default {
 				color: rgba(153, 153, 153, 1);
 				margin-left: 10rpx;
 			}
+
 			.price {
 				font-size: 32rpx;
 				font-family: OPPOSans;
 				font-weight: 500;
 				color: rgba(250, 253, 253, 1);
+
 				&::before {
 					content: '￥';
 					font-size: 22rpx;
@@ -541,6 +614,7 @@ export default {
 			}
 		}
 	}
+
 	.pay-btn {
 		width: 205rpx;
 		height: 80rpx;
@@ -552,6 +626,7 @@ export default {
 		color: rgba(255, 255, 255, 1);
 	}
 }
+
 .content_box {
 	margin-top: 1upx;
 	display: flex;
@@ -578,6 +653,7 @@ export default {
 	width: 200upx;
 	height: 100vh;
 	flex: 1;
+
 	.list-active {
 		background: #fff;
 		color: #333333 !important;
@@ -610,6 +686,7 @@ export default {
 	padding: 0 30upx;
 	flex: 1;
 	height: 100vh;
+
 	.item-list {
 		.type-box {
 			min-height: 84rpx;
@@ -624,6 +701,7 @@ export default {
 				font-size: 26rpx;
 				color: #999;
 			}
+
 			.type-img {
 				width: 505rpx;
 				height: 150rpx;
@@ -635,6 +713,7 @@ export default {
 
 		.item-box {
 			flex-wrap: wrap;
+
 			.goods-item {
 				.goods-item--right {
 					@include flex($direction: column, $justify: around, $align: top);
@@ -643,38 +722,46 @@ export default {
 					height: 140rpx;
 					margin-left: 20rpx;
 				}
+
 				.item-right--bottom {
 					width: 100%;
 				}
+
 				.item-img {
 					width: 140rpx;
 					height: 140rpx;
 					border-radius: 10rpx;
-					background-color: #ccc;
+					// background-color: #ccc;
 				}
+
 				.item-right--title {
 					width: 350rpx;
 					font-weight: bold;
 					font-size: 26rpx;
 				}
+
 				.item-right--sales {
 					font-size: 24rpx;
 					font-family: PingFang SC;
 					font-weight: 400;
 					color: rgba(153, 153, 153, 1);
 				}
+
 				.price-box {
 					.current-price {
 						color: #e1212b;
 						font-size: 28rpx;
+
 						.current-price--unit {
 							font-size: 24rpx;
 						}
 					}
+
 					.origin-price {
 						color: #999;
 						font-size: 18rpx;
 						margin-left: 12rpx;
+
 						.origin-price--unit {
 							font-size: 14rpx;
 						}
@@ -687,11 +774,13 @@ export default {
 					bottom: 0;
 					right: 0rpx;
 					padding: 0;
+
 					.cuIcon-roundaddfill {
 						color: #e6b873;
 						font-size: 40rpx;
 					}
 				}
+
 				.sel-sku {
 					width: 100rpx;
 					height: 40rpx;
@@ -702,6 +791,7 @@ export default {
 					font-weight: 500;
 					color: rgba(250, 253, 253, 1);
 				}
+
 				.num-step {
 					/deep/.uni-numbox__value {
 						width: 32rpx;
