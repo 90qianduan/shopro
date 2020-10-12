@@ -1,4 +1,8 @@
-// 购物车模块
+/**
+ * vuex购物车模块
+ * @module - 购物车的添加，删除，多选，单选，数量，价格统计
+ */
+
 import http from '@/common/request/index'
 import store from '@/common/store'
 import {
@@ -6,9 +10,9 @@ import {
 	CART_NUM
 } from '../types.js'
 const state = {
-	cartList: [],
-	allSelected: false,
-	cartNum: uni.getStorageSync('cartNum') ? uni.getStorageSync('cartNum') : 0, //购物车,涉及到刷新数据丢失，所以存了本地,
+	cartList: [], //购物车列表
+	allSelected: false, //是否全选购物车
+	cartNum: uni.getStorageSync('cartNum') ? uni.getStorageSync('cartNum') : 0, //购物车商品数,涉及到刷新数据丢失，所以存了本地,
 }
 
 const actions = {
@@ -20,13 +24,14 @@ const actions = {
 		return new Promise((resolve, reject) => {
 			http('cart.index').then(res => {
 				let cartData = res.data;
-				cartData.map(item => {
+				cartData.map(item => { //默认购物车全部选中
 					item.checked = true;
 				})
-				uni.setStorageSync('cartNum', cartData.length);
-				commit('CART_LIST', cartData);
-				commit('checkCartList');
-				commit('CART_NUM');
+				uni.setStorageSync('cartNum', cartData.length); //持久化购物车数量
+				commit('CART_LIST', cartData); //修改购物车数据
+				commit('checkCartList'); //检测是否全选
+				commit('CART_NUM'); //修改购物车气泡数量
+				resolve(res) 
 			}).catch(e => {
 				reject(e)
 			})
@@ -41,7 +46,7 @@ const actions = {
 				goods_list: data.list,
 				from: data.from
 			}).then(res => {
-				store.dispatch('getCartList');
+				store.dispatch('getCartList'); //更新购物车列表
 				resolve(res)
 			}).catch(e => {
 				reject(e)
@@ -61,10 +66,10 @@ const actions = {
 				act: param.art
 			}).then(res => {
 				if (param.art === 'delete' && res.code === 1) {
-					store.dispatch('getCartList');
+					store.dispatch('getCartList');//更新购物车数据
 				}
+				commit('checkCartList');//检测是否全选
 				resolve(res)
-				commit('checkCartList');
 			}).catch(e => {
 				reject(e)
 			})
@@ -130,7 +135,7 @@ const getters = {
 			totalPrice
 		}
 	},
-	// 外卖购物车数量和总价
+	// 外卖购物车商品件数和总价
 	takeoutTotalCount: state => {
 		let totalNum = 0;
 		let totalPrice = 0;

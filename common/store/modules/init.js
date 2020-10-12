@@ -1,4 +1,8 @@
-// 初始化数据模块
+/**
+ * vuex 初始化数据模块
+ * @module - 初始化配置，模块等信息
+ */
+
 import api from '@/common/request/index'
 import store from '@/common/store'
 import Router from '@/common/router';
@@ -9,14 +13,15 @@ import {
 	TEMPLATE_DATA
 } from '../types.js'
 const state = {
-	initData: {},
-	routes: [],
+	initData: {}, //初始化配置信息数据
+	routes: [], //前端路由表
 	addons: uni.getStorageSync('addons') ? uni.getStorageSync('addons') : [], //插件列表
-	templateData: uni.getStorageSync('templateData') ? uni.getStorageSync('templateData') : {},
-	hasTemplate:true//是否有初始化数据
+	templateData: uni.getStorageSync('templateData') ? uni.getStorageSync('templateData') : {}, //初始化模板数据
+	hasTemplate: true //是否有初始化数据
 }
 
 const actions = {
+	// 初始化项目配置信息
 	getAppInit({
 		commit
 	}, options) {
@@ -48,7 +53,7 @@ const actions = {
 			})
 		})
 	},
-	// 模板信息
+	// 初始化模块信息
 	getTemplate({
 		commit
 	}, options = {}) {
@@ -69,8 +74,8 @@ const actions = {
 			api('template', params).then(res => {
 				uni.setStorageSync('templateData', res.data);
 				commit('TEMPLATE_DATA', res.data);
-				if(res.code == 0){
-						commit('hasTemplate', false);
+				if (res.code == 0) {
+					commit('hasTemplate', false);
 				}
 				resolve(res)
 			}).catch(e => {
@@ -81,15 +86,19 @@ const actions = {
 }
 
 const mutations = {
+	// 路由
 	[PAGE_ROUTES](state, data) {
 		state.routes = data
 	},
+	// 配置
 	[INIT_DATA](state, data) {
 		state.initData = data
 	},
+	// 模板
 	[TEMPLATE_DATA](state, data) {
 		state.templateData = data
 	},
+	// 是否有模板信息
 	hasTemplate(state, data) {
 		state.hasTemplate = data
 	},

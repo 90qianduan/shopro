@@ -2,6 +2,12 @@ import Request from './request'
 import apiList from './shopro'
 import store from '@/common/store/index.js'
 
+/**
+ * 封装接口请求方法
+ * @param url {String} - 接口地址
+ * @param data {Object} - 请求参数 
+ */
+
 export default function api(url, data = {}) {
 	const request = new Request();
 	let api = getApiObj(url);
@@ -11,7 +17,7 @@ export default function api(url, data = {}) {
 			if (!token) {
 				store.commit('LOGIN_TIP', true)
 				store.commit('OUT_LOGIN');
-				throw('暂未登录,已阻止此次API请求~');
+				throw ('暂未登录,已阻止此次API请求~');
 			}
 		}
 		if (uni.getStorageSync('token')) {
@@ -50,6 +56,7 @@ export default function api(url, data = {}) {
 
 }
 
+// 解析接口列表文件。
 function getApiObj(url) {
 	let apiArray = url.split(".");
 	let api = apiList;

@@ -1,4 +1,7 @@
-// 用户数据模块
+/**
+ * vuex 用户相关
+ * @module - 用户信息，是否登录，订单信息，消息订阅等。
+ */
 import api from '@/common/request/index'
 import store from '@/common/store'
 import router from '@/common/router.js'
@@ -15,11 +18,11 @@ import {
 	// #endif
 } from '../types.js'
 const state = {
-	userInfo: uni.getStorageSync('userInfo') ? uni.getStorageSync('userInfo') : {},
-	showLoginTip: false,
-	orderNum: {},
+	userInfo: uni.getStorageSync('userInfo') ? uni.getStorageSync('userInfo') : {}, //用户个人信息
+	showLoginTip: false, //是否显示登录提示
+	orderNum: {}, //用户订单数量角标
 	// #ifdef MP-WEIXIN
-	forceOauth: false,
+	forceOauth: false, //微信登录提示，全屏弹窗。
 	// #endif
 	messageIds: {}, //小程序订阅消息模板ids
 
@@ -30,14 +33,14 @@ const actions = {
 	setTokenAndBack({
 		commit
 	}, token) {
-		uni.setStorageSync('token', token);
-		store.dispatch('getUserInfo');
-		let fromLogin = uni.getStorageSync('fromLogin');
+		uni.setStorageSync('token', token); //token存入缓存
+		store.dispatch('getUserInfo'); //请求用户信息
+		let fromLogin = uni.getStorageSync('fromLogin'); //存入登录前路径。
 		if (fromLogin) {
 			tools.routerTo(fromLogin.path, fromLogin.query, true);
 			uni.removeStorageSync('fromLogin')
 		} else {
-			//默认跳转首页S
+			//默认跳转首页
 			router.replaceAll('/pages/index/index')
 		}
 	},
@@ -48,11 +51,11 @@ const actions = {
 	}) {
 		return new Promise((resolve, reject) => {
 			api('user.info').then(res => {
-				store.dispatch('getCartList')
-				commit('LOGIN_TIP', false);
-				commit('USER_INFO', res.data);
-				uni.setStorageSync('userInfo', res.data);
-				store.dispatch('getOrderNum');
+				store.dispatch('getCartList') //请求购物车数据
+				commit('LOGIN_TIP', false); //隐藏登录提示
+				commit('USER_INFO', res.data); //更新用户信息
+				uni.setStorageSync('userInfo', res.data); //缓存用户信息
+				store.dispatch('getOrderNum'); //获取用户各类订单数量信息
 				//添加推广记录
 				let share_id = uni.getStorageSync('share_id');
 				let url = uni.getStorageSync('url');
@@ -119,7 +122,7 @@ const actions = {
 						break;
 				}
 				typeName.forEach(item => {
-					obj[item] && arr.push(obj[item])
+					obj[item] && arr.push(obj[item]) //如果后台返回的消息模板存在，则把当前预设消息类型加入数组中
 				})
 				uni.requestSubscribeMessage({
 					tmplIds: arr,
@@ -144,22 +147,26 @@ const mutations = {
 	[MESSAGE_IDS](state, data) {
 		state.messageIds = data
 	},
+	// 用户个人信息
 	[USER_INFO](state, data) {
 		state.userInfo = data
 	},
+	// 是否登录提示
 	[LOGIN_TIP](state, data) {
 		state.showLoginTip = data
 	},
+	// 用户订单分类数量信息
 	[ORDER_NUMBER](state, data) {
 		state.orderNum = data
 	},
 	// #ifdef MP-WEIXIN
+	// 微信端是否全屏登录
 	[FORCE_OAUTH](state, data) {
 		state.forceOauth = data
 		data ? uni.hideTabBar() : uni.showTabBar();
 	},
 	// #endif
-
+	// 退出登录，清除相关用户信息。
 	[OUT_LOGIN](state, data) {
 		uni.removeStorageSync('token');
 		uni.removeStorageSync('userInfo');

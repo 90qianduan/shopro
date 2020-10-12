@@ -1,6 +1,6 @@
 /**
  * Wechat v1.0.2
- * @description shopro-wechat 1.0.2 wehcat全局分享组件
+ * @description shopro-wechat 1.0.2 wehcat全局分享组件,通过mixins混入。
  * @Author llidongtony
  * @Date 2020-05-18
  * @Email lidongtony@qq.com
@@ -83,13 +83,19 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * 设置分享内容
+		 * @param title {String} - 自定义分享标题
+		 * @param image {String} - 自定义分享图片
+		 * @param query {Object} - 自定义分享参数
+		 */
 		setShareInfo(scene = {
-			title: '', //自定义分享标题
-			image: '', //自定义分享图片
-			query: {} //自定义分享参数
+			title: '',
+			image: '',
+			query: {}
 		}) {
 			let that = this;
-
+			// 获取缓存中分享配置信息。
 			uni.getStorage({
 				key: 'shareInfo',
 				success(e) {
@@ -136,7 +142,6 @@ export default {
 
 				}
 			})
-			console.log(that.shareInfo, 'shareInfo')
 		},
 		// 全局自定义url字符串拼接的方法
 		setPathQuery(query) {
@@ -160,6 +165,7 @@ export default {
 			}
 			return url;
 		},
+		// 解析字符串参数
 		getQueryValue(queryName, scene) {
 			var query = decodeURI(scene);
 			var vars = query.split("&");
@@ -174,7 +180,7 @@ export default {
 	},
 
 	// #ifdef MP-WEIXIN
-
+	// 小程序胶囊分享到聊天好友
 	onShareAppMessage(res) {
 		let that = this;
 		return {
@@ -195,6 +201,7 @@ export default {
 			complete() {}
 		}
 	},
+	// 小程序分享到微信朋友圈
 	onShareTimeline(res) {
 		let that = this;
 		return {

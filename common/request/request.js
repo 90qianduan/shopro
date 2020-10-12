@@ -2,25 +2,60 @@ import {
 	API_URL
 } from '@/env'
 
+/**
+ * 封装接口请求拦截类
+ * @constructor
+ * @prop {Object} config - 请求头配置信息 
+ * @prop {Object} interceptor - 请求拦截器方法对象 
+ */
+
 export default class Request {
-	config = {
-		baseUrl: API_URL,
-		header: {
-			'content-type': 'application/json',
-			'platform': uni.getStorageSync('platform'),
-		},
-		method: 'GET',
-		dataType: 'json',
-		// #ifndef MP-ALIPAY || APP-PLUS
-		responseType: 'text',
-		// #endif
-		custom: {},
-		// #ifdef MP-ALIPAY
-		timeout: 30000,
-		// #endif
-		// #ifdef APP-PLUS
-		sslVerify: false
-		// #endif
+	constructor() {
+		// 请求配置信息
+		this.config = {
+			baseUrl: API_URL,
+			header: {
+				'content-type': 'application/json',
+				'platform': uni.getStorageSync('platform'),
+			},
+			method: 'GET',
+			dataType: 'json',
+			// #ifndef MP-ALIPAY || APP-PLUS
+			responseType: 'text',
+			// #endif
+			custom: {},
+			// #ifdef MP-ALIPAY
+			timeout: 30000,
+			// #endif
+			// #ifdef APP-PLUS
+			sslVerify: false
+			// #endif
+		}
+		/**
+		 * @property {Function} request 请求拦截器
+		 * @property {Function} response 响应拦截器
+		 * @type {{request: Request.interceptor.request, response: Request.interceptor.response}}
+		 */
+		this.interceptor = {
+			/**
+			 * @param {Request~requestCallback} cb - 请求之前拦截,接收一个函数（config, cancel）=> {return config}。第一个参数为全局config,第二个参数为函数，调用则取消本次请求。
+			 */
+			request: (cb) => {
+				if (cb) {
+					this.requestBeforeFun = cb
+				}
+			},
+			/**
+			 * @param {Request~responseCallback} cb 响应拦截器，对响应数据做点什么
+			 * @param {Request~responseErrCallback} ecb 响应拦截器，对响应错误做点什么
+			 */
+			response: (cb, ecb) => {
+				if (cb && ecb) {
+					this.requestComFun = cb
+					this.requestComFail = ecb
+				}
+			}
+		}
 	}
 
 	static posUrl(url) { /* 判断url是否为绝对路径 */
@@ -33,32 +68,6 @@ export default class Request {
 			paramsData += key + '=' + encodeURIComponent(params[key]) + '&'
 		})
 		return paramsData.substring(0, paramsData.length - 1)
-	}
-
-	/**
-	 * @property {Function} request 请求拦截器
-	 * @property {Function} response 响应拦截器
-	 * @type {{request: Request.interceptor.request, response: Request.interceptor.response}}
-	 */
-	interceptor = {
-		/**
-		 * @param {Request~requestCallback} cb - 请求之前拦截,接收一个函数（config, cancel）=> {return config}。第一个参数为全局config,第二个参数为函数，调用则取消本次请求。
-		 */
-		request: (cb) => {
-			if (cb) {
-				this.requestBeforeFun = cb
-			}
-		},
-		/**
-		 * @param {Request~responseCallback} cb 响应拦截器，对响应数据做点什么
-		 * @param {Request~responseErrCallback} ecb 响应拦截器，对响应错误做点什么
-		 */
-		response: (cb, ecb) => {
-			if (cb && ecb) {
-				this.requestComFun = cb
-				this.requestComFail = ecb
-			}
-		}
 	}
 
 	requestBeforeFun(config) {
