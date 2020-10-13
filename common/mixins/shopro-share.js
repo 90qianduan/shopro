@@ -85,9 +85,9 @@ export default {
 	methods: {
 		/**
 		 * 设置分享内容
-		 * @param title {String} - 自定义分享标题
-		 * @param image {String} - 自定义分享图片
-		 * @param query {Object} - 自定义分享参数
+		 * @param  {String} title - 自定义分享标题
+		 * @param  {String} image - 自定义分享图片
+		 * @param  {Object} query - 自定义分享参数
 		 */
 		setShareInfo(scene = {
 			title: '',

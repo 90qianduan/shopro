@@ -1,3 +1,5 @@
+/* 常用工具函数 */
+
 import {
 	API_URL
 } from '@/env'
@@ -5,8 +7,11 @@ import router from '@/common/router'
 export default {
 	/**
 	 * 跳转再封装，不支持复杂传参。
+	 * @param  {String} path - 传入的路由地址
+	 * @param  {Object} params - 路由参数
+	 * @param  {Boolean} isTabbar - 是否为底部导航项
 	 */
-	routerTo(path, params = {}, isLogin) {
+	routerTo(path, params = {}, isTabbar) {
 		let objParams = params;
 		// 是否跳转外部链接
 		if (~path.indexOf('http')) {
@@ -42,7 +47,7 @@ export default {
 			})
 		}
 		// 判断是否是tabbar
-		if (isLogin) {
+		if (isTabbar) {
 			router.replaceAll({
 				path: path,
 				query: objParams
@@ -55,11 +60,11 @@ export default {
 		}
 
 	},
-	/**
-	 * fn：检测图片协议，主要用于检测海报图片协议。
-	 * param(imgPath): 图片地址。
-	 */
 
+	/**
+	 * 检测图片协议，用于海报生成
+	 * @param {String} imgPath - 传入的海报网络地址
+	 */
 	checkImgHttp(imgPath) {
 		let newPath = '';
 		let pathArr = imgPath.split('://');
@@ -73,7 +78,11 @@ export default {
 		newPath = pathArr.join('://');
 		return newPath;
 	},
-	// 打电话
+
+	/**
+	 * 调用拨打电话
+	 * @param phoneNumber {String} - 传入的手机号码
+	 */
 	callPhone(phoneNumber = '') {
 		let num = phoneNumber.toString()
 		uni.makePhoneCall({
@@ -83,7 +92,12 @@ export default {
 			},
 		});
 	},
-	// 图片处理-选择图片
+
+	/**
+	 * 图片处理-选择图片
+	 * @param  {Number} count - 单次选择图片数量
+	 * @return {Array.<string>} - 返回图片的本地文件路径列表
+	 */
 	chooseImage(count = 1) {
 		return new Promise((resolve, reject) => {
 			uni.chooseImage({
@@ -98,7 +112,12 @@ export default {
 			reject(e)
 		})
 	},
-	// 图片处理-上传图片
+
+	/**
+	 * 图片处理-上传图片
+	 * @param {String} api = ['index/upload']  - 上传图片的api接口地址
+	 * @param {String} url - 上传的图片资源路径。
+	 */
 	uploadImage(api, url) {
 		let config_url = API_URL;
 		uni.showLoading({
@@ -131,7 +150,12 @@ export default {
 			reject(e)
 		})
 	},
-	// 图片处理-预览图片
+
+	/**
+	 * 图片处理-预览图片
+	 * @param {Array.<string>} urls - 需要预览的图片链接列表
+	 * @param {Number} current - 图片索引值，预览时成为第一张。
+	 */
 	previewImage(urls = [], current = 0) {
 		uni.previewImage({
 			urls: urls,
@@ -143,7 +167,11 @@ export default {
 			},
 		})
 	},
-	// 图片处理-获取图片信息
+
+	/**
+	 * 图片处理-获取图片信息
+	 * @param {String} src - 图片的路径，可以是相对路径，临时文件路径，存储文件路径，网络图片路径
+	 */
 	getImageInfo(src = '') {
 		return new Promise((resolve, reject) => {
 			uni.getImageInfo({
@@ -160,10 +188,11 @@ export default {
 		})
 
 	},
+
 	/**
-	 * 格式化时间
+	 * 格式化时间-天时分秒
+	 * @param {Number} t - 传入秒数。
 	 */
-	//时间格式化 天时分秒
 	format(t) {
 		let format = {
 			d: '00',
@@ -183,7 +212,11 @@ export default {
 		}
 		return format
 	},
-	//时间格式化(格式化最大为小时)
+
+	/**
+	 * 格式化时间-时分秒
+	 * @param {Number} t - 传入秒数。
+	 */
 	formatToHours(t) {
 		let format = {
 			d: '00',
@@ -202,7 +235,11 @@ export default {
 		}
 		return format
 	},
-	// 年月日
+
+	/**
+	 * 格式化时间-年月日
+	 * @param {Number} timestamp - 传入秒数。
+	 */
 	timestamp(timestamp) {
 		let date = new Date(timestamp * 1000); //根据时间戳生成的时间对象
 		let y = date.getFullYear();
@@ -215,8 +252,12 @@ export default {
 		let dateText = y + "-" + m + "-" + d
 		return dateText
 	},
-	// 年月日，时分秒
-	// "YYYY-mm-dd HH:MM"
+
+	/**
+	 * 格式化时间-年月日,时分秒
+	 * @param {String} fmt=[mm-dd HH:MM] -时间格式
+	 * @param {Number} date -时间毫秒
+	 */
 	dateFormat(fmt, date) {
 		let ret;
 		const opt = {
@@ -236,8 +277,9 @@ export default {
 		};
 		return fmt;
 	},
+
 	/**
-	 *  @fn  时间间隔格式化
+	 *  时间间隔格式化
 	 *  @param {*} startTime 开始时间的时间戳
 	 *  @param {*} endTime 结束时间的时间戳
 	 *  @return {string} str 返回时间字符串
@@ -279,11 +321,11 @@ export default {
 	},
 
 
-	/**提示框
-	 *title(标题)
-	 *icon(图标):  success，loading，none
-	 *duration(延时): 0为不关闭, 毫秒数
-	 *options(其它参数)
+	/**
+	 * 提示框
+	 * @param {String} title - 提示框标题
+	 * @param {String} icon = [success|loading|none] - 提示图标
+	 * @param {Object} options= {duration:Number,image:String,mask:Boolean} - 延时，图片，遮罩。
 	 */
 	toast(title, icon = 'none', options) {
 		wx.showToast({
@@ -296,9 +338,9 @@ export default {
 	},
 
 	/**
-	 *@alias 节流
-	 *@param {function} fn 节流被执行函数 
-	 *@param {Number}  delay 时间单位内
+	 * 节流函数
+	 *@param {Function} fn -节流被执行函数 
+	 *@param {Number}  delay -时间单位内/秒
 	 */
 	throttle(fn, delay) {
 		let flag = true,
@@ -316,9 +358,9 @@ export default {
 	},
 
 	/**
-	 *@alias 防抖
-	 *@param {function} fn 防抖被执行函数 
-	 *@param {Number}  delay 时间单位内
+	 * 防抖函数
+	 *@param {function} fn -防抖被执行函数 
+	 *@param {Number}  delay -时间单位内
 	 */
 	debounce(fn, delay) {
 		let timer = null

@@ -4,8 +4,8 @@ import store from '@/common/store/index.js'
 
 /**
  * 封装接口请求方法
- * @param url {String} - 接口地址
- * @param data {Object} - 请求参数 
+ * @param  {String } url - 接口地址
+ * @param  {Object} data - 请求参数 
  */
 
 export default function api(url, data = {}) {
