@@ -35,6 +35,7 @@ export default class ShoproPay {
 
 	}
 
+	// 解构支付方式
 	getPayMethod() {
 		var payMethod = {
 			'wxOfficialAccount': {
@@ -221,6 +222,7 @@ export default class ShoproPay {
 		});
 	}
 
+	// 余额支付
 	async walletPay() {
 		let that = this;
 		let result = await this.prepay();
@@ -236,6 +238,7 @@ export default class ShoproPay {
 		}
 	}
 
+	// 复制支付链接
 	async copyPayLink() {
 		let that = this;
 		let result = await this.prepay();
@@ -276,6 +279,7 @@ export default class ShoproPay {
 		}
 	}
 
+	// 支付宝支付
 	async aliPay() {
 		let that = this;
 		let result = await this.prepay();
@@ -309,6 +313,7 @@ export default class ShoproPay {
 		}
 	}
 
+	// 微信支付
 	async wechatPay() {
 		let that = this;
 		let result = await this.prepay();

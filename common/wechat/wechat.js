@@ -14,7 +14,6 @@ import {
 } from '@/env'
 
 export default class Wechat {
-
 	async login() {
 		let token = '';
 		if (router.$Route.path.indexOf('public/login') == -1) {

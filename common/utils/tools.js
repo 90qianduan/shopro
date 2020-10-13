@@ -335,44 +335,5 @@ export default {
 			image: (options && options.image) || '',
 			mask: (options && options.mask) || true,
 		});
-	},
-
-	/**
-	 * 节流函数
-	 *@param {Function} fn -节流被执行函数 
-	 *@param {Number}  delay -时间单位内/秒
-	 */
-	throttle(fn, delay) {
-		let flag = true,
-			timer = null;
-		return function(...args) {
-			let context = this
-			if (!flag) return
-			flag = false
-			clearTimeout(timer)
-			timer = setTimeout(() => {
-				fn.apply(context, args)
-				flag = true
-			}, delay)
-		}
-	},
-
-	/**
-	 * 防抖函数
-	 *@param {function} fn -防抖被执行函数 
-	 *@param {Number}  delay -时间单位内
-	 */
-	debounce(fn, delay) {
-		let timer = null
-		return function(...args) {
-			let context = this
-			if (timer) clearTimeout(timer)
-			timer = setTimeout(function() {
-				fn.apply(context, args)
-			}, delay)
-		}
 	}
-
-
-
 }

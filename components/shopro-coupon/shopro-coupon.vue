@@ -78,6 +78,7 @@ export default {
 	position: relative;
 	border-radius: 10rpx;
 	width: 710rpx;
+	// filter: grayscale(100%);
 	.coupon-item {
 		width: 100%;
 		height: 168rpx;
