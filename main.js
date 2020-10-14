@@ -36,7 +36,6 @@ const app = new Vue({
 	...App
 });
 
-
 // #ifdef H5
 import wxsdk from '@/common/wechat/sdk'
 
