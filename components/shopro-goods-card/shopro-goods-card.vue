@@ -20,12 +20,17 @@
 </template>
 
 <script>
+/**
+ * shopro-goods-card  商品卡片
+ * @prop {Boolean} isTag - 是否显示商品角标。
+ * @prop {Object} detail - 商品详情信息
+ */
 export default {
 	name: 'shoproGoodsCard',
 	components: {},
 	data() {
 		return {
-			tagPath: {
+			tagPath: { //商品角标，本地图片
 				groupon: '/static/imgs/groupon_tag.png',
 				seckill: '/static/imgs/seckill_tag.png'
 			}
@@ -33,7 +38,7 @@ export default {
 	},
 	props: {
 		isTag: {
-			type: [Boolean, String],
+			type: [Boolean],
 			default: false
 		},
 		detail: {

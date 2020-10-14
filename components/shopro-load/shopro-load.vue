@@ -7,6 +7,10 @@
 </template>
 
 <script>
+/**
+ * shopro-load  非常简单的load组件。
+ * @prop {Boolean} value -通过v-model双向绑定的,loadModal监听v-model传入的value;
+ */
 export default {
 	components: {},
 	data() {

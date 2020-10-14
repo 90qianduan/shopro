@@ -1,9 +1,12 @@
+/**
+ * 路由入口文件,路由导航守卫。
+ */
+
 import Vue from 'vue'
 import Router from 'uni-simple-router'
 import store from '@/common/store'
 
 Vue.use(Router)
-//初始化
 const router = new Router({
 	APP: {
 		animation: {

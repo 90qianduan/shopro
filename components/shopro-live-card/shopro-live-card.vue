@@ -7,15 +7,12 @@
 				<text class="status-text">{{ liveStatus[detail.live_status].title }}</text>
 			</view>
 			<view class="item-title" :style="{ width: wh + 'rpx' }">{{ detail.name }}</view>
-			<!-- 	<image v-if="detail.live_status == 101" class="like-img" src="http://shopro.7wpp.com/imgs/live/zan.gif" mode=""></image> -->
 		</view>
 		<view class="live-bottom" :style="{ width: wh + 'rpx' }">
 			<view class="live-info">
 				<view class="info-box">
-					<!-- 	<image class="info-avatar" :src="detail.anchor_img" mode=""></image> -->
 					<view class="info-name">{{ detail.anchor_name }}</view>
 				</view>
-				<!-- 	<text class="views">15W观看</text> -->
 			</view>
 			<slot name="liveGoods">
 				<view class="live-goods" v-if="detail.goods.length">
@@ -33,6 +30,12 @@
 </template>
 
 <script>
+/**
+ * shopro-live-card 直播卡片（使用的是小程序官方的插件，需要后台申请资质，仅限于小程序）
+ * @prop {Object} detail - 直播卡片信息
+ * @prop {Number} wh - 直播卡片宽度。
+ */
+
 // #ifdef MP-WEIXIN
 import { HAS_LIVE } from '@/env';
 let livePlayer = null;
@@ -103,6 +106,7 @@ export default {
 		timer = null;
 	},
 	methods: {
+		// 跳转微信官方插件。
 		goRoom() {
 			let that = this;
 			wx.navigateTo({

@@ -24,6 +24,13 @@
 </template>
 
 <script>
+/**
+ * shopro-float-btn 悬浮按钮菜单
+ * @prop {Boolean} showModal - 弹出悬浮菜单时的遮罩。
+ * @prop {Boolean} showBtnList - 显示悬浮菜单动画。
+ * @prop {String} modalImg - 悬浮菜单功能为弹窗时的广告图。
+ * @prop {Array.<object>} floatList -悬浮按钮的菜单数据，从vuex中拿的。
+ */
 import { mapMutations, mapActions, mapState, mapGetters } from 'vuex';
 export default {
 	components: {},
@@ -31,8 +38,7 @@ export default {
 		return {
 			showModal: false,
 			showBtnList: false,
-			modalImg: '',
-			showBtn: false
+			modalImg: ''
 		};
 	},
 	props: {},
@@ -45,6 +51,7 @@ export default {
 				return this.template[0].content;
 			}
 		},
+		// 获取当前页面路径
 		currentPath() {
 			let pages = getCurrentPages();
 			let currPage = null;
@@ -53,6 +60,7 @@ export default {
 			}
 			return '/' + currPage;
 		},
+		// 悬浮按钮菜单数据
 		floatList() {
 			if (this.floatData) {
 				let arr = this.floatData.list.filter(item => {
@@ -62,11 +70,7 @@ export default {
 			}
 		}
 	},
-	created() {
-		// setInterval(function(){
-		// 	console.log(this.template,123)
-		// 	}, 100);
-	},
+	created() {},
 	methods: {
 		hideModal() {
 			this.showModal = false;
@@ -74,6 +78,7 @@ export default {
 		hideBtnModal() {
 			this.showBtnList = false;
 		},
+		// 点击按钮悬浮菜单，两种模式，如果style==2,子菜单是跳转,否则是弹窗
 		onBtnItem(item) {
 			if (item.style == 2) {
 				this.$tools.routerTo(item.path);
@@ -97,6 +102,7 @@ export default {
 				}
 			});
 		},
+		// 点击悬浮按钮，如果只有一个内容项,直接跳转链接，或者显示弹窗,悬浮按钮图片为唯一内容项图片。
 		onBtn() {
 			if (this.floatList.length == 1) {
 				this.modalImg = this.floatList[0].image;

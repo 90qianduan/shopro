@@ -31,6 +31,10 @@
 </template>
 
 <script>
+	/**
+	 * shopro-login-modal 登录提示组件,两种模式，一种针对微信的，一种通用的。
+	 * @prop {Boolean} value - 控制显隐
+	 */
 import Wechat from '@/common/wechat/wechat';
 import { mapMutations, mapActions, mapState } from 'vuex';
 export default {

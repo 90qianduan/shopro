@@ -9,6 +9,11 @@
 </template>
 
 <script>
+/**
+ * shopro-empty 数据为空
+ * @prop {Object} emptyData - 展示数据
+ * @prop {Boolean} isFixed - 是否开启绝对定位。
+ */
 export default {
 	name: 'shoproEmpty',
 	components: {},
