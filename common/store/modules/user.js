@@ -124,7 +124,7 @@ const actions = {
 				typeName.forEach(item => {
 					obj[item] && arr.push(obj[item]) //如果后台返回的消息模板存在，则把当前预设消息类型加入数组中
 				})
-				uni.requestSubscribeMessage({
+				arr.length && uni.requestSubscribeMessage({
 					tmplIds: arr,
 					success: (res) => {
 						console.log(res);
